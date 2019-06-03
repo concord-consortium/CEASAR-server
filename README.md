@@ -4,17 +4,19 @@ Based on `create-colyseus-app`
 ## :crossed_swords: Usage
 If this is the first time running the app, run `npm install`
 
-Start MongoDB:
-
-`mongod --dbpath=data`
-
-Start server:
+Start server locally:
 
 `npm start`
 
-To regenerate the schema for the room:
+Rebuild ready for deploy on Heroku:
 
-`npx schema-codegen CeasarRoom.ts --csharp --output ../Assets/Scripts/Network/`
+`tsc`
+
+When pushing to Heroku, the contents of the dist folder are served up.
+
+To regenerate the schema for the room, assuming project CEASAR is at same level as this on your system:
+
+`npx schema-codegen CeasarRoom.ts --csharp --output ../CEASAR/Assets/Scripts/Network/`
 
 ## Structure
 
