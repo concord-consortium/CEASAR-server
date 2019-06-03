@@ -6,7 +6,7 @@ import { monitor } from "@colyseus/monitor";
 
 import { CeasarRoom } from "./CeasarRoom";
 
-const port = Number(process.env.PORT || 2567);
+const port = Number(2567);
 const app = express()
 app.use(cors());
 
@@ -20,4 +20,4 @@ gameServer.register('ceasar', CeasarRoom);
 app.use("/colyseus", monitor(gameServer));
 
 gameServer.listen(port);
-console.log(`Listening on ws://localhost:${ port }`)
+console.log(`Listening on ws://heroku-server-address:${ port }`)
