@@ -20,4 +20,4 @@ gameServer.register('ceasar', CeasarRoom);
 app.use("/colyseus", monitor(gameServer));
 
 gameServer.listen(port);
-console.log(`Listening on ws://heroku-server-port:${ port }`)
+console.log(`Listening on ws://calm-meadow-14344.herokuapp.com:${ port }`)
