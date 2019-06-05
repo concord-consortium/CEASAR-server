@@ -21,8 +21,9 @@ export class State extends Schema {
   @type({ map: Player })
   players = new MapSchema<Player>();
 
-  createPlayer (id: string) {
-      this.players[id] = new Player();
+  createPlayer (id: string, username: string) {
+    this.players[id] = new Player();
+    this.players[id].username = username;
   }
 
   removePlayer (id: string) {
@@ -53,7 +54,7 @@ export class CeasarRoom extends Room<State> {
     this.setState(new State());
   }
   onJoin(client: Client, options: any) {
-    this.state.createPlayer(client.sessionId);
+    this.state.createPlayer(client.sessionId, options.username);
     this.broadcast(`${client.sessionId} joined.`);
   }
   onMessage(client: Client, data: any) {
