@@ -39,8 +39,9 @@ class State extends schema_1.Schema {
         super(...arguments);
         this.players = new schema_1.MapSchema();
     }
-    createPlayer(id) {
+    createPlayer(id, username) {
         this.players[id] = new Player();
+        this.players[id].username = username;
     }
     removePlayer(id) {
         delete this.players[id];
@@ -73,7 +74,7 @@ class CeasarRoom extends colyseus_1.Room {
         this.setState(new State());
     }
     onJoin(client, options) {
-        this.state.createPlayer(client.sessionId);
+        this.state.createPlayer(client.sessionId, options.username);
         this.broadcast(`${client.sessionId} joined.`);
     }
     onMessage(client, data) {

@@ -19,4 +19,4 @@ gameServer.register('ceasar', CeasarRoom_1.CeasarRoom);
 // register colyseus monitor AFTER registering your room handlers
 app.use("/colyseus", monitor_1.monitor(gameServer));
 gameServer.listen(port);
-console.log(`Listening on ws://heroku-server-port:${port}`);
+console.log(`Listening on ws://calm-meadow-14344.herokuapp.com:${port}`);
