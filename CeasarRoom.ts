@@ -1,5 +1,6 @@
 import { Room, Client } from "colyseus";
 import { Schema, type, MapSchema } from "@colyseus/schema";
+import { verifyToken, User, IUser } from "@colyseus/social";
 
 class NetworkVector3 extends Schema {
   @type("number")
@@ -38,6 +39,9 @@ export class Player extends Schema {
 
   @type(NetworkTransform)
   interactionTarget = new NetworkTransform();
+
+  @type("boolean")
+  connected: boolean = true;
 }
 
 export class State extends Schema {
@@ -86,12 +90,22 @@ export class State extends Schema {
     this.players[id].y = posY;
   }
 }
-export class CeasarRoom extends Room<State> {
-  onInit(options: any) {
+export class CeasarRoom extends Room {
+  onCreate(options: any) {
     console.log("CeasarRoom created!", options);
     this.setState(new State());
   }
-  onJoin(client: Client, options: any) {
+  // onInit(options: any) {
+  //   console.log("CeasarRoom init!", options);
+  //   this.setState(new State());
+  // }
+
+  async onAuth(client: Client, options: any) {
+    console.log("onAuth(), options!", options);
+    return await User.findById(verifyToken(options.token)._id);
+  }
+
+  onJoin(client: Client, options: any, user: IUser) {
     this.state.createPlayer(client.sessionId, options.username);
     this.broadcast(`${client.sessionId} joined.`);
   }
@@ -100,25 +114,38 @@ export class CeasarRoom extends Room<State> {
       case "movement":
         console.log("CeasarRoom received movement message from", client.sessionId, ":", data);
         this.state.movePlayer(client.sessionId, data.message);
-        this.broadcast(`${client.sessionId} movement`);
+        this.broadcast({ movement: `${client.sessionId} movement` });
         break;
       case "interaction":
         console.log("CeasarRoom received interaction from", client.sessionId, ":", data);
         this.state.syncInteraction(client.sessionId, data);
-        this.broadcast(`${client.sessionId} interaction`);
+        this.broadcast({ interaction: `${client.sessionId} interaction`});
         break;
       case "heartbeat":
         // do nothing
         break;
       default:
         console.log("CeasarRoom received unknown message from", client.sessionId, ":", data);
-        this.broadcast(`(${client.sessionId}) ${data.message}`);
+        this.broadcast({ message: `(${client.sessionId}) ${data.message}` });
         break;
     }
   }
-  onLeave(client: Client, consented: boolean) {
-    this.state.removePlayer(client.sessionId);
-    this.broadcast(`${client.sessionId} left.`);
+  async onLeave(client: Client, consented: boolean) {
+    this.state.players[client.sessionId].connected = false;
+    try {
+      if (consented) {
+        console.log("consented leave");
+      }
+      console.log("wait for reconnection!");
+      const newClient = await this.allowReconnection(client, 10);
+      console.log("reconnected!", newClient.sessionId);
+    } catch (e) {
+      console.log("disconnected!", client.sessionId);
+      delete this.state.players[client.sessionId];
+      this.broadcast(`${client.sessionId} left.`);
+    }
+    // this.state.removePlayer(client.sessionId);
+    // this.broadcast(`${client.sessionId} left.`);
   }
   onDispose() {
     console.log("Dispose CeasarRoom");

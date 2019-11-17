@@ -1,7 +1,7 @@
 {
-  "name": "my-app",
-  "version": "1.0.0",
-  "description": "npm init template for bootstraping an empty Colyseus project",
+  "name": "ceasar-server",
+  "version": "1.1.0",
+  "description": "Server components for the CEASAR project networking",
   "main": "lib/index.js",
   "scripts": {
     "start": "ts-node index.ts",
@@ -15,16 +15,17 @@
   },
   "homepage": "https://github.com/colyseus/ceasar-colyseus#readme",
   "devDependencies": {
-    "@colyseus/loadtest": "^0.10.1",
-    "@types/cors": "^2.8.5",
-    "@types/express": "^4.16.1",
-    "ts-node": "^8.1.0",
-    "typescript": "^3.4.5"
+    "@colyseus/loadtest": "^0.10.2",
+    "@types/cors": "^2.8.6",
+    "@types/express": "^4.17.1",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.3"
   },
   "dependencies": {
     "@colyseus/monitor": "^0.10.0",
-    "@colyseus/schema": "^0.4.34",
-    "colyseus": "^0.10.7",
+    "@colyseus/schema": "^0.4.61",
+    "@colyseus/social": "^0.11.6",
+    "colyseus": "^0.11.16",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-jwt": "^5.3.1"
