@@ -1,9 +1,10 @@
+import dotenv from "dotenv"
+dotenv.config()
 import http from "http";
 import express from "express";
 import cors from "cors";
 import { Server } from "colyseus";
 import { monitor } from "@colyseus/monitor";
-
 import { CeasarRoom } from "./CeasarRoom";
 
 import socialRoutes from "@colyseus/social/express";

@@ -31,7 +31,8 @@ bower_components
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
-dist
+# Because of how heroku works, ignoring `dist` is a problem. 
+# dist
 # Dependency directories
 node_modules/
 jspm_packages/
