@@ -19,7 +19,7 @@ The `.env` file should contain one environmental variable for the mongo server:
 ```
 
 You will need to obtain that URI from another developer or from
-Config Var of the same name in the Heroku [ceaser-server-staging app](https://dashboard.heroku.com/apps/caeser-server-staging/settings).
+Config Var of the same name in the Heroku [ceaser-server-staging app](https://dashboard.heroku.com/apps/ceaser-server-staging/settings).
 
 ### Running Locally:
 
