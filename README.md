@@ -50,9 +50,9 @@ folder, then `start` is run, which executes `node dist/index.ts`.
 
 ### Preview Branches
 Pushing changes to *any* branch should cause a Heroku preview app to be built.
-You will need to modify the preview app by adding an MLab Mongo Heroku addon.
 You will need to configure the apps settings, to add a `MONGO_URI` config var.
-The recommendation at the moment is to copy the Config Var from [caeser-server-staging app](https://dashboard.heroku.com/apps/caeser-server-staging/settings)
+For now you can just copy the `MONGO_URI` config var from the
+[staging-app settings](https://dashboard.heroku.com/apps/ceasar-server-staging/settings).
 
 ### Staging Branch
 Pushing changes to *`master`* will cause the Heroku staging sever to update.
