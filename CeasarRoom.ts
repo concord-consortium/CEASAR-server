@@ -95,10 +95,6 @@ export class CeasarRoom extends Room {
     console.log("CeasarRoom created!", options);
     this.setState(new State());
   }
-  // onInit(options: any) {
-  //   console.log("CeasarRoom init!", options);
-  //   this.setState(new State());
-  // }
 
   async onAuth(client: Client, options: any) {
     console.log("onAuth(), options!", options);
@@ -144,8 +140,6 @@ export class CeasarRoom extends Room {
       delete this.state.players[client.sessionId];
       this.broadcast(`${client.sessionId} left.`);
     }
-    // this.state.removePlayer(client.sessionId);
-    // this.broadcast(`${client.sessionId} left.`);
   }
   onDispose() {
     console.log("Dispose CeasarRoom");
