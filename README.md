@@ -59,7 +59,7 @@ Pushing changes to *`master`* will cause the Heroku staging sever to update.
 THe staing server is already provisioned with configured MLAb Mongo Heroku addon.
 
 The heroku app websocket server should be available at:
-wss://ceasar-server-staging.concord.org/ or 
+wss://ceasar-server-staging.concord.org/ or
 
 ### Procution Branch
 This is not configured yet, but will be configured similar to how the staging branch is configured.
