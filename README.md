@@ -45,7 +45,7 @@ Heroku will look for pushed github branches to run as apps. *`master`* is automa
 deployed. Other branches can be configured using the Heroku web console as preview apps.
 
 The Heroku pipeline looks at `package.json` to figure out how to build and run
-the Caeser-server app. First `heroku-postbuild` is run which builds the `/dist`
+the Ceaser-server app. First `heroku-postbuild` is run which builds the `/dist`
 folder, then `start` is run, which executes `node dist/index.ts`.
 
 ### Preview Branches
@@ -56,7 +56,7 @@ For now you can just copy the `MONGO_URI` config var from the
 
 ### Staging Branch
 Pushing changes to *`master`* will cause the Heroku staging sever to update.
-THe staing server is already provisioned with configured MLAb Mongo Heroku addon.
+The staging server is already provisioned with configured MLAb Mongo Heroku addon.
 
 The heroku app websocket server should be available at:
 wss://ceasar-server-staging.concord.org/ or
