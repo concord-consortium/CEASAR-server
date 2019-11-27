@@ -8,7 +8,7 @@ A CEASER Game server based on `create-colyseus-app`.
 
 ## Development:
 
-### Local reqiurements:  
+### Local requirements:  
 You will need to add a local `.env` file to this project directory.
 *Important: `.env` should always be included in `.gitignore`*
 
