@@ -3,12 +3,17 @@
   "version": "1.1.0",
   "description": "Server components for the CEASAR project networking",
   "main": "lib/index.js",
+  "engines": {
+    "node": "10.x"
+  },
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "node dist/index.ts",
+    "live": "ts-node index.ts",
     "loadtest": "colyseus-loadtest loadtest/example.ts --room my_room --numClients 2",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf dist",
-    "build": "npm run clean && tsc"
+    "build": "npm run clean && tsc",
+    "heroku-postbuild": "build"
   },
   "author": "",
   "license": "",
@@ -32,6 +37,7 @@
     "colyseus": "^0.11.16",
     "cors": "^2.8.5",
     "express": "^4.16.4",
-    "express-jwt": "^5.3.1"
+    "express-jwt": "^5.3.1",
+    "dotenv": "^8.2.0"
   }
 }
