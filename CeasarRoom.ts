@@ -59,16 +59,16 @@ export class State extends Schema {
   }
 
   movePlayer(id: string, movement: any) {
-    if (movement.posX) {
-      this.movePlayerToPosition(id, movement.posX, movement.posY);
-    } else {
-      if (movement.x) {
-        this.players[id].x += movement.x;
+    var t: NetworkTransform = new NetworkTransform();
 
-      } else if (movement.y) {
-        this.players[id].y += movement.y;
-      }
-    }
+    t.position.x = movement.transform.position.x;
+    t.position.y = movement.transform.position.y;
+    t.position.z = movement.transform.position.z;
+    t.rotation.x = movement.transform.rotation.x;
+    t.rotation.y = movement.transform.rotation.y;
+    t.rotation.z = movement.transform.rotation.z;
+
+    this.players[id].playerPosition = t;
   }
 
   syncInteraction(id: string, interaction: any) {
@@ -109,7 +109,7 @@ export class CeasarRoom extends Room {
     switch (data.message) {
       case "movement":
         console.log("CeasarRoom received movement message from", client.sessionId, ":", data);
-        this.state.movePlayer(client.sessionId, data.message);
+        this.state.movePlayer(client.sessionId, data);
         this.broadcast({ movement: `${client.sessionId} movement` });
         break;
       case "interaction":
