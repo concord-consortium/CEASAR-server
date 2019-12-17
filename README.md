@@ -28,6 +28,10 @@ To start a live-reloading development server run:
    npm run live
 ```
 
+### Debugging
+
+For additional debugging & logging add `CEASAR_DEBUG=true` to your local `.env` file.
+
 Your Ceaser Websocket should then be available at `ws://localhost:2567`.
 
 ## Changing the Schema:
