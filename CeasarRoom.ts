@@ -1,6 +1,7 @@
 import { Room, Client } from "colyseus";
 import { Schema, type, MapSchema } from "@colyseus/schema";
 import { verifyToken, User, IUser } from "@colyseus/social";
+import { debug } from "./utils";
 
 class NetworkVector3 extends Schema {
   @type("number")
@@ -92,28 +93,34 @@ export class State extends Schema {
 }
 export class CeasarRoom extends Room {
   onCreate(options: any) {
-    console.log("CeasarRoom created!", options);
+    debug(`CeasarRoom created! ${options}`);
     this.setState(new State());
   }
 
   async onAuth(client: Client, options: any) {
-    console.log("onAuth(), options!", options);
+    debug(`onAuth(), options! ${options}`);
     return await User.findById(verifyToken(options.token)._id);
+  }
+
+  reportState() {
+    debug(this.state.toJSON());
   }
 
   onJoin(client: Client, options: any, user: IUser) {
     this.state.createPlayer(client.sessionId, options.username);
     this.broadcast(`${client.sessionId} joined.`);
+    this.reportState();
   }
+
   onMessage(client: Client, data: any) {
     switch (data.message) {
       case "movement":
-        console.log("CeasarRoom received movement message from", client.sessionId, ":", data);
+        debug(`CeasarRoom received movement from ${client.sessionId}: ${data}`);
         this.state.movePlayer(client.sessionId, data);
         this.broadcast({ movement: `${client.sessionId} movement` });
         break;
       case "interaction":
-        console.log("CeasarRoom received interaction from", client.sessionId, ":", data);
+        debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
         this.state.syncInteraction(client.sessionId, data);
         this.broadcast({ interaction: `${client.sessionId} interaction`});
         break;
@@ -121,27 +128,29 @@ export class CeasarRoom extends Room {
         // do nothing
         break;
       default:
-        console.log("CeasarRoom received unknown message from", client.sessionId, ":", data);
+        debug(`CeasarRoom received unknown message from ${client.sessionId}: ${data}`);
         this.broadcast({ message: `(${client.sessionId}) ${data.message}` });
         break;
     }
+    this.reportState();
   }
   async onLeave(client: Client, consented: boolean) {
     this.state.players[client.sessionId].connected = false;
     try {
-      if (consented) {
-        console.log("consented leave");
-      }
-      console.log("wait for reconnection!");
-      const newClient = await this.allowReconnection(client, 10);
-      console.log("reconnected!", newClient.sessionId);
+      if (consented) { debug("consented leave"); }
+      debug("wait for reconnection!");
+      const newClient = await this.allowReconnection(client, 1);
+      debug(`reconnected! ${newClient.sessionId}`);
+      this.state.players[client.sessionId].connected = true;
+      this.reportState();
     } catch (e) {
-      console.log("disconnected!", client.sessionId);
+      debug(`disconnected! ${client.sessionId}`);
       delete this.state.players[client.sessionId];
       this.broadcast(`${client.sessionId} left.`);
+      this.reportState();
     }
   }
   onDispose() {
-    console.log("Dispose CeasarRoom");
+    debug("Dispose CeasarRoom");
   }
 }
