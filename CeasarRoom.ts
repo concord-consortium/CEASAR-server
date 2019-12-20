@@ -134,21 +134,24 @@ export class CeasarRoom extends Room {
     }
     this.reportState();
   }
-  async onLeave(client: Client, consented: boolean) {
-    this.state.players[client.sessionId].connected = false;
-    try {
-      if (consented) { debug("consented leave"); }
-      debug("wait for reconnection!");
-      const newClient = await this.allowReconnection(client, 1);
+  onLeave(client: Client, consented: boolean) {
+    this.broadcast(`${client.sessionId} left.`);
+    this.reportState();
+    debug("wait for reconnection!");
+    this.allowReconnection(client, 2)
+    .then( (newClient) => {
+      debug(`new Client: ${newClient}`);
+      debug(JSON.stringify(newClient,null,"  "));
       debug(`reconnected! ${newClient.sessionId}`);
-      this.state.players[client.sessionId].connected = true;
+      this.state.players[newClient.sessionId].connected = true;
       this.reportState();
-    } catch (e) {
+    }).catch( (reason: any) => {
+      debug(reason);
+      debug(JSON.stringify(reason, null, " "));
       debug(`disconnected! ${client.sessionId}`);
-      delete this.state.players[client.sessionId];
-      this.broadcast(`${client.sessionId} left.`);
+      this.state.removePlayer(client.sessionId);
       this.reportState();
-    }
+    })
   }
   onDispose() {
     debug("Dispose CeasarRoom");
