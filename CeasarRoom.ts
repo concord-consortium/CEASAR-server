@@ -35,6 +35,28 @@ class NetworkTransform extends Schema {
   }
 }
 
+class NetworkCelestialObject extends Schema {
+  @type("string")
+  name = "";
+  // a group could be a constellation for a star, or a useful parent concept like "planet" or "satellite"
+  // we may need this on the client.
+  @type("string")
+  group = "";
+  // unique ID can be XBayerFlemsteed for a star, or perhaps a string name for a planet
+  // our Client can have authority over uniqueness to simplify server layer
+  @type("string")
+  uniqueId = "";
+
+  constructor(celestialObject?: any) {
+    super();
+    if (celestialObject) {
+      this.name = celestialObject.name;
+      this.group = celestialObject.group;
+      this.uniqueId = celestialObject.uniqueId;
+    }
+  }
+}
+
 export class Player extends Schema {
   @type("string")
   id = "";
@@ -50,6 +72,12 @@ export class Player extends Schema {
 
   @type(NetworkTransform)
   interactionTarget = new NetworkTransform();
+
+  @type(NetworkTransform)
+  locationPin = new NetworkTransform();
+
+  @type(NetworkCelestialObject)
+  celestialObjectTarget = new NetworkCelestialObject();
 
   @type("boolean")
   connected: boolean = true;
@@ -75,6 +103,13 @@ export class State extends Schema {
 
   syncInteraction(id: string, interactionTransform: any) {
     this.players[id].interactionTarget = new NetworkTransform(interactionTransform);
+  }
+  syncLocationPin(id: string, locationTransform: any) {
+    this.players[id].locationPin = new NetworkTransform(locationTransform);
+  }
+
+  syncCelestialObjectInteraction(id: string, celestialObject: any) {
+    this.players[id].celestialObjectTarget = new NetworkCelestialObject(celestialObject);
   }
 }
 export class CeasarRoom extends Room {
@@ -110,6 +145,16 @@ export class CeasarRoom extends Room {
         this.state.syncInteraction(client.sessionId, data.transform);
         this.broadcast({ interaction: `${client.sessionId} interaction`});
         break;
+      case "locationpin":
+          debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
+          this.state.syncLocationPin(client.sessionId, data.transform);
+          this.broadcast({ locationpin: `${client.sessionId} locationpin`});
+        break;
+      case "celestialinteraction":
+          debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
+          this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
+          this.broadcast({ celestialinteraction: `${client.sessionId} celestialinteraction`});
+          break;
       case "heartbeat":
         // do nothing
         break;
