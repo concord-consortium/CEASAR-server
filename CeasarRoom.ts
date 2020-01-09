@@ -29,12 +29,6 @@ export class Player extends Schema {
   @type("string")
   currentScene = "stars";
 
-  @type("number")
-  x = Math.floor(Math.random() * 10) - 5;
-
-  @type("number")
-  y = Math.floor(Math.random() * 10) - 5;
-
   @type(NetworkTransform)
   playerPosition = new NetworkTransform();
 
@@ -83,12 +77,6 @@ export class State extends Schema {
     t.rotation.z = interaction.transform.rotation.z;
 
     this.players[id].interactionTarget = t;
-
-  }
-
-  movePlayerToPosition(id: string, posX: number, posY: number) {
-    this.players[id].x = posX;
-    this.players[id].y = posY;
   }
 }
 export class CeasarRoom extends Room {
