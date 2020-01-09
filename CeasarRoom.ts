@@ -10,6 +10,14 @@ class NetworkVector3 extends Schema {
   y = 0;
   @type("number")
   z = 0;
+  constructor(vector3Object?: any) {
+    super();
+    if (vector3Object) {
+      this.x = vector3Object.x;
+      this.y = vector3Object.y;
+      this.z = vector3Object.z;
+    }
+  }
 }
 class NetworkTransform extends Schema {
   @type(NetworkVector3)
@@ -17,6 +25,14 @@ class NetworkTransform extends Schema {
 
   @type(NetworkVector3)
   rotation = new NetworkVector3();
+
+  constructor(transformObject?: any) {
+    super();
+    if (transformObject) {
+      this.position = new NetworkVector3(transformObject.position);
+      this.rotation = new NetworkVector3(transformObject.rotation);
+    }
+  }
 }
 
 export class Player extends Schema {
@@ -53,30 +69,12 @@ export class State extends Schema {
       delete this.players[ id ];
   }
 
-  movePlayer(id: string, movement: any) {
-    var t: NetworkTransform = new NetworkTransform();
-
-    t.position.x = movement.transform.position.x;
-    t.position.y = movement.transform.position.y;
-    t.position.z = movement.transform.position.z;
-    t.rotation.x = movement.transform.rotation.x;
-    t.rotation.y = movement.transform.rotation.y;
-    t.rotation.z = movement.transform.rotation.z;
-
-    this.players[id].playerPosition = t;
+  movePlayer(id: string, movementTransform: any) {
+    this.players[id].playerPosition = new NetworkTransform(movementTransform);
   }
 
-  syncInteraction(id: string, interaction: any) {
-    var t: NetworkTransform = new NetworkTransform();
-
-    t.position.x = interaction.transform.position.x;
-    t.position.y = interaction.transform.position.y;
-    t.position.z = interaction.transform.position.z;
-    t.rotation.x = interaction.transform.rotation.x;
-    t.rotation.y = interaction.transform.rotation.y;
-    t.rotation.z = interaction.transform.rotation.z;
-
-    this.players[id].interactionTarget = t;
+  syncInteraction(id: string, interactionTransform: any) {
+    this.players[id].interactionTarget = new NetworkTransform(interactionTransform);
   }
 }
 export class CeasarRoom extends Room {
@@ -104,12 +102,12 @@ export class CeasarRoom extends Room {
     switch (data.message) {
       case "movement":
         debug(`CeasarRoom received movement from ${client.sessionId}: ${data}`);
-        this.state.movePlayer(client.sessionId, data);
+        this.state.movePlayer(client.sessionId, data.transform);
         this.broadcast({ movement: `${client.sessionId} movement` });
         break;
       case "interaction":
         debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
-        this.state.syncInteraction(client.sessionId, data);
+        this.state.syncInteraction(client.sessionId, data.transform);
         this.broadcast({ interaction: `${client.sessionId} interaction`});
         break;
       case "heartbeat":
