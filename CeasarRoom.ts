@@ -112,6 +112,13 @@ export class State extends Schema {
     this.players[id].celestialObjectTarget = new NetworkCelestialObject(celestialObject);
   }
 }
+
+export class UpdateMessage extends Schema {
+  @type("string")
+  updateType = "";
+  @type("string")
+  playerId = "";
+}
 export class CeasarRoom extends Room {
   onCreate(options: any) {
     debug(`CeasarRoom created! ${options}`);
@@ -133,27 +140,37 @@ export class CeasarRoom extends Room {
     this.reportState();
   }
 
+  sendUpdateMessage(messageType: string, cliendId: string) {
+    // Sent to all connected clients to update remote interactions
+    // For now, using strings on both ends,
+    // care needs to be taken to match available types of messages
+    const responseData = new UpdateMessage();
+    responseData.updateType = messageType;
+    responseData.playerId = cliendId;
+    this.broadcast(responseData);
+  }
+
   onMessage(client: Client, data: any) {
     switch (data.message) {
       case "movement":
         debug(`CeasarRoom received movement from ${client.sessionId}: ${data}`);
         this.state.movePlayer(client.sessionId, data.transform);
-        this.broadcast({ movement: `${client.sessionId} movement` });
+        this.sendUpdateMessage("movement", client.sessionId);
         break;
       case "interaction":
         debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
         this.state.syncInteraction(client.sessionId, data.transform);
-        this.broadcast({ interaction: `${client.sessionId} interaction`});
+        this.sendUpdateMessage("interaction", client.sessionId);
         break;
       case "locationpin":
           debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
-          this.state.syncLocationPin(client.sessionId, data.transform);
-          this.broadcast({ locationpin: `${client.sessionId} locationpin`});
+        this.state.syncLocationPin(client.sessionId, data.transform);
+        this.sendUpdateMessage("locationpin", client.sessionId);
         break;
       case "celestialinteraction":
           debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
           this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
-          this.broadcast({ celestialinteraction: `${client.sessionId} celestialinteraction`});
+          this.sendUpdateMessage("celestialinteraction", client.sessionId);
           break;
       case "heartbeat":
         // do nothing

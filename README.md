@@ -8,7 +8,7 @@ A CEASER Game server based on `create-colyseus-app`.
 
 ## Development:
 
-### Local requirements:  
+### Local requirements:
 You will need to add a local `.env` file to this project directory.
 *Important: `.env` should always be included in `.gitignore`*
 
@@ -39,7 +39,7 @@ Your Ceaser Websocket should then be available at `ws://localhost:2567`.
 To regenerate the schema for the room, assuming project CEASAR is at same level as this on your system:
 
 ```
-   npx schema-codegen CeasarRoom.ts --csharp --output ../CEASAR/Assets/Scripts/Network/
+   npx schema-codegen CeasarRoom.ts --csharp --output ../CEASAR/Assets/Scripts/Network/Schema/
 ```
 
 ## Heroku Deployment:
