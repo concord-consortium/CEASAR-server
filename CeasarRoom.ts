@@ -140,14 +140,14 @@ export class CeasarRoom extends Room {
     this.reportState();
   }
 
-  sendUpdateMessage(messageType: string, cliendId: string) {
+  sendUpdateMessage(messageType: string, client: Client) {
     // Sent to all connected clients to update remote interactions
     // For now, using strings on both ends,
     // care needs to be taken to match available types of messages
     const responseData = new UpdateMessage();
     responseData.updateType = messageType;
-    responseData.playerId = cliendId;
-    this.broadcast(responseData);
+    responseData.playerId = client.sessionId;
+    this.broadcast(responseData, { afterNextPatch: true, except: client });
   }
 
   onMessage(client: Client, data: any) {
@@ -155,22 +155,22 @@ export class CeasarRoom extends Room {
       case "movement":
         debug(`CeasarRoom received movement from ${client.sessionId}: ${data}`);
         this.state.movePlayer(client.sessionId, data.transform);
-        this.sendUpdateMessage("movement", client.sessionId);
+        this.sendUpdateMessage("movement", client);
         break;
       case "interaction":
         debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
         this.state.syncInteraction(client.sessionId, data.transform);
-        this.sendUpdateMessage("interaction", client.sessionId);
+        this.sendUpdateMessage("interaction", client);
         break;
       case "locationpin":
           debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
         this.state.syncLocationPin(client.sessionId, data.transform);
-        this.sendUpdateMessage("locationpin", client.sessionId);
+        this.sendUpdateMessage("locationpin", client);
         break;
       case "celestialinteraction":
           debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
           this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
-          this.sendUpdateMessage("celestialinteraction", client.sessionId);
+          this.sendUpdateMessage("celestialinteraction", client);
           break;
       case "heartbeat":
         // do nothing
