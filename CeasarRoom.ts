@@ -10,6 +10,14 @@ class NetworkVector3 extends Schema {
   y = 0;
   @type("number")
   z = 0;
+  constructor(vector3Object?: any) {
+    super();
+    if (vector3Object) {
+      this.x = vector3Object.x;
+      this.y = vector3Object.y;
+      this.z = vector3Object.z;
+    }
+  }
 }
 class NetworkTransform extends Schema {
   @type(NetworkVector3)
@@ -17,6 +25,36 @@ class NetworkTransform extends Schema {
 
   @type(NetworkVector3)
   rotation = new NetworkVector3();
+
+  constructor(transformObject?: any) {
+    super();
+    if (transformObject) {
+      this.position = new NetworkVector3(transformObject.position);
+      this.rotation = new NetworkVector3(transformObject.rotation);
+    }
+  }
+}
+
+class NetworkCelestialObject extends Schema {
+  @type("string")
+  name = "";
+  // a group could be a constellation for a star, or a useful parent concept like "planet" or "satellite"
+  // we may need this on the client.
+  @type("string")
+  group = "";
+  // unique ID can be XBayerFlemsteed for a star, or perhaps a string name for a planet
+  // our Client can have authority over uniqueness to simplify server layer
+  @type("string")
+  uniqueId = "";
+
+  constructor(celestialObject?: any) {
+    super();
+    if (celestialObject) {
+      this.name = celestialObject.name;
+      this.group = celestialObject.group;
+      this.uniqueId = celestialObject.uniqueId;
+    }
+  }
 }
 
 export class Player extends Schema {
@@ -29,17 +67,17 @@ export class Player extends Schema {
   @type("string")
   currentScene = "stars";
 
-  @type("number")
-  x = Math.floor(Math.random() * 10) - 5;
-
-  @type("number")
-  y = Math.floor(Math.random() * 10) - 5;
-
   @type(NetworkTransform)
   playerPosition = new NetworkTransform();
 
   @type(NetworkTransform)
   interactionTarget = new NetworkTransform();
+
+  @type(NetworkTransform)
+  locationPin = new NetworkTransform();
+
+  @type(NetworkCelestialObject)
+  celestialObjectTarget = new NetworkCelestialObject();
 
   @type("boolean")
   connected: boolean = true;
@@ -59,37 +97,27 @@ export class State extends Schema {
       delete this.players[ id ];
   }
 
-  movePlayer(id: string, movement: any) {
-    var t: NetworkTransform = new NetworkTransform();
-
-    t.position.x = movement.transform.position.x;
-    t.position.y = movement.transform.position.y;
-    t.position.z = movement.transform.position.z;
-    t.rotation.x = movement.transform.rotation.x;
-    t.rotation.y = movement.transform.rotation.y;
-    t.rotation.z = movement.transform.rotation.z;
-
-    this.players[id].playerPosition = t;
+  movePlayer(id: string, movementTransform: any) {
+    this.players[id].playerPosition = new NetworkTransform(movementTransform);
   }
 
-  syncInteraction(id: string, interaction: any) {
-    var t: NetworkTransform = new NetworkTransform();
-
-    t.position.x = interaction.transform.position.x;
-    t.position.y = interaction.transform.position.y;
-    t.position.z = interaction.transform.position.z;
-    t.rotation.x = interaction.transform.rotation.x;
-    t.rotation.y = interaction.transform.rotation.y;
-    t.rotation.z = interaction.transform.rotation.z;
-
-    this.players[id].interactionTarget = t;
-
+  syncInteraction(id: string, interactionTransform: any) {
+    this.players[id].interactionTarget = new NetworkTransform(interactionTransform);
+  }
+  syncLocationPin(id: string, locationTransform: any) {
+    this.players[id].locationPin = new NetworkTransform(locationTransform);
   }
 
-  movePlayerToPosition(id: string, posX: number, posY: number) {
-    this.players[id].x = posX;
-    this.players[id].y = posY;
+  syncCelestialObjectInteraction(id: string, celestialObject: any) {
+    this.players[id].celestialObjectTarget = new NetworkCelestialObject(celestialObject);
   }
+}
+
+export class UpdateMessage extends Schema {
+  @type("string")
+  updateType = "";
+  @type("string")
+  playerId = "";
 }
 export class CeasarRoom extends Room {
   onCreate(options: any) {
@@ -112,18 +140,38 @@ export class CeasarRoom extends Room {
     this.reportState();
   }
 
+  sendUpdateMessage(messageType: string, client: Client) {
+    // Sent to all connected clients to update remote interactions
+    // For now, using strings on both ends,
+    // care needs to be taken to match available types of messages
+    const responseData = new UpdateMessage();
+    responseData.updateType = messageType;
+    responseData.playerId = client.sessionId;
+    this.broadcast(responseData, { afterNextPatch: true, except: client });
+  }
+
   onMessage(client: Client, data: any) {
     switch (data.message) {
       case "movement":
         debug(`CeasarRoom received movement from ${client.sessionId}: ${data}`);
-        this.state.movePlayer(client.sessionId, data);
-        this.broadcast({ movement: `${client.sessionId} movement` });
+        this.state.movePlayer(client.sessionId, data.transform);
+        this.sendUpdateMessage("movement", client);
         break;
       case "interaction":
         debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
-        this.state.syncInteraction(client.sessionId, data);
-        this.broadcast({ interaction: `${client.sessionId} interaction`});
+        this.state.syncInteraction(client.sessionId, data.transform);
+        this.sendUpdateMessage("interaction", client);
         break;
+      case "locationpin":
+          debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
+        this.state.syncLocationPin(client.sessionId, data.transform);
+        this.sendUpdateMessage("locationpin", client);
+        break;
+      case "celestialinteraction":
+          debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
+          this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
+          this.sendUpdateMessage("celestialinteraction", client);
+          break;
       case "heartbeat":
         // do nothing
         break;
