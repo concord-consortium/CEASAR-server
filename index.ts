@@ -21,6 +21,15 @@ const gameServer = new Server({
   pingTimeout: 0
 });
 
+const roomNames =
+[
+  'alpha', 'beta', 'gamma',
+  'delta', 'epsilon', 'zeta',
+  'eta', 'theta', 'iota'
+];
+
+roomNames.forEach(name => gameServer.define(name, CeasarRoom));
+
 // register your room handlers
 gameServer.define('ceasar', CeasarRoom);
 
