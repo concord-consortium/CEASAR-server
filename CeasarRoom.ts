@@ -1,5 +1,5 @@
 import { Room, Client } from "colyseus";
-import { Schema, type, MapSchema } from "@colyseus/schema";
+import { Schema, type, MapSchema, ArraySchema } from "@colyseus/schema";
 import { verifyToken, User, IUser } from "@colyseus/social";
 import { debug } from "./utils";
 
@@ -31,6 +31,21 @@ class NetworkTransform extends Schema {
     if (transformObject) {
       this.position = new NetworkVector3(transformObject.position);
       this.rotation = new NetworkVector3(transformObject.rotation);
+    }
+  }
+}
+
+class NetworkAnnotation extends Schema{
+  @type(NetworkVector3)
+  startPosition = new NetworkVector3();
+  @type(NetworkVector3)
+  endPosition = new NetworkVector3();
+
+  constructor(annotationObject?: any) {
+    super();
+    if (annotationObject) {
+      this.startPosition = new NetworkVector3(annotationObject.startPosition);
+      this.endPosition = new NetworkVector3(annotationObject.endPosition);
     }
   }
 }
@@ -79,6 +94,9 @@ export class Player extends Schema {
   @type(NetworkCelestialObject)
   celestialObjectTarget = new NetworkCelestialObject();
 
+  @type([ NetworkAnnotation ])
+  annotations = new ArraySchema<NetworkAnnotation>();
+
   @type("boolean")
   connected: boolean = true;
 }
@@ -110,6 +128,10 @@ export class State extends Schema {
 
   syncCelestialObjectInteraction(id: string, celestialObject: any) {
     this.players[id].celestialObjectTarget = new NetworkCelestialObject(celestialObject);
+  }
+
+  syncAnnotation(id: string, annotation: any) {
+    this.players[id].annotations.push(new NetworkAnnotation(annotation));
   }
 }
 
@@ -164,15 +186,20 @@ export class CeasarRoom extends Room {
         this.sendUpdateMessage("interaction", client);
         break;
       case "locationpin":
-          debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
+        debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
         this.state.syncLocationPin(client.sessionId, data.transform);
         this.sendUpdateMessage("locationpin", client);
         break;
       case "celestialinteraction":
-          debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
-          this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
-          this.sendUpdateMessage("celestialinteraction", client);
-          break;
+        debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
+        this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
+        this.sendUpdateMessage("celestialinteraction", client);
+        break;
+      case "annotation":
+        debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
+        this.state.syncAnnotation(client.sessionId, data.annotation);
+        this.sendUpdateMessage("annotation", client);
+        break;
       case "heartbeat":
         // do nothing
         break;
