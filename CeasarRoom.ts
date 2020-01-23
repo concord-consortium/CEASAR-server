@@ -26,27 +26,19 @@ class NetworkTransform extends Schema {
   @type(NetworkVector3)
   rotation = new NetworkVector3();
 
+  @type(NetworkVector3)
+  localScale = new NetworkVector3();
+
   constructor(transformObject?: any) {
     super();
     if (transformObject) {
       this.position = new NetworkVector3(transformObject.position);
       this.rotation = new NetworkVector3(transformObject.rotation);
+      this.localScale = new NetworkVector3(transformObject.localScale);
     }
   }
-}
-
-class NetworkAnnotation extends Schema{
-  @type(NetworkVector3)
-  startPosition = new NetworkVector3();
-  @type(NetworkVector3)
-  endPosition = new NetworkVector3();
-
-  constructor(annotationObject?: any) {
-    super();
-    if (annotationObject) {
-      this.startPosition = new NetworkVector3(annotationObject.startPosition);
-      this.endPosition = new NetworkVector3(annotationObject.endPosition);
-    }
+  toString() {
+    return `(${this.position.x},${this.position.y},${this.position.z}) (${this.rotation.x},${this.rotation.y},${this.rotation.z}) (${this.localScale.x},${this.localScale.y},${this.localScale.z})`;
   }
 }
 
@@ -94,8 +86,8 @@ export class Player extends Schema {
   @type(NetworkCelestialObject)
   celestialObjectTarget = new NetworkCelestialObject();
 
-  @type([ NetworkAnnotation ])
-  annotations = new ArraySchema<NetworkAnnotation>();
+  @type([ NetworkTransform ])
+  annotations = new ArraySchema<NetworkTransform>();
 
   @type("boolean")
   connected: boolean = true;
@@ -131,7 +123,8 @@ export class State extends Schema {
   }
 
   syncAnnotation(id: string, annotation: any) {
-    this.players[id].annotations.push(new NetworkAnnotation(annotation));
+    let t = new NetworkTransform(annotation);
+    this.players[id].annotations.push(new NetworkTransform(annotation));
   }
 }
 
@@ -191,13 +184,13 @@ export class CeasarRoom extends Room {
         this.sendUpdateMessage("locationpin", client);
         break;
       case "celestialinteraction":
-        debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
+        debug(`CeasarRoom received celestialInteraction from ${client.sessionId}: ${data}`);
         this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
         this.sendUpdateMessage("celestialinteraction", client);
         break;
       case "annotation":
-        debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
-        this.state.syncAnnotation(client.sessionId, data.annotation);
+        debug(`CeasarRoom received annotation from ${client.sessionId}: ${data}`);
+        this.state.syncAnnotation(client.sessionId, data.transform);
         this.sendUpdateMessage("annotation", client);
         break;
       case "heartbeat":
