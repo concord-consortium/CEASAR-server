@@ -121,7 +121,7 @@ export class UpdateMessage extends Schema {
 }
 export class CeasarRoom extends Room {
   onCreate(options: any) {
-    debug(`CeasarRoom created! ${options}`);
+    debug(`CeasarRoom created ${this.roomName}`);
     this.setState(new State());
   }
 
@@ -131,6 +131,7 @@ export class CeasarRoom extends Room {
   }
 
   reportState() {
+    debug(`Info for room: ${this.roomName}`);
     debug(this.state.toJSON());
   }
 
