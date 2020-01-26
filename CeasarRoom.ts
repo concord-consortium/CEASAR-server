@@ -29,12 +29,16 @@ class NetworkTransform extends Schema {
   @type(NetworkVector3)
   localScale = new NetworkVector3();
 
+  @type("string")
+  name = "";
+
   constructor(transformObject?: any) {
     super();
     if (transformObject) {
       this.position = new NetworkVector3(transformObject.position);
       this.rotation = new NetworkVector3(transformObject.rotation);
       this.localScale = new NetworkVector3(transformObject.localScale);
+      this.name = transformObject.name ? transformObject.name : "";
     }
   }
   toString() {
@@ -126,6 +130,21 @@ export class State extends Schema {
     let t = new NetworkTransform(annotation);
     this.players[id].annotations.push(new NetworkTransform(annotation));
   }
+
+  syncDeleteAnnotation(id: string, annotationName: any) {
+    let annotations = this.players[id].annotations;
+    let annotationIndex = -1;
+    for (let i = 0; i < annotations.length; i++){
+      if (annotations[i].name === annotationName){
+        annotationIndex = i;
+        break;
+      }
+    }
+    if (annotationIndex > -1){
+      this.players[id].annotations.splice(annotationIndex, 1);
+    }
+    
+  }
 }
 
 export class UpdateMessage extends Schema {
@@ -133,6 +152,8 @@ export class UpdateMessage extends Schema {
   updateType = "";
   @type("string")
   playerId = "";
+  @type("string")
+  metadata = "";
 }
 export class CeasarRoom extends Room {
   onCreate(options: any) {
@@ -156,13 +177,14 @@ export class CeasarRoom extends Room {
     this.reportState();
   }
 
-  sendUpdateMessage(messageType: string, client: Client) {
+  sendUpdateMessage(messageType: string, client: Client, metadata?: string) {
     // Sent to all connected clients to update remote interactions
     // For now, using strings on both ends,
     // care needs to be taken to match available types of messages
     const responseData = new UpdateMessage();
     responseData.updateType = messageType;
     responseData.playerId = client.sessionId;
+    responseData.metadata = metadata ? metadata : "";
     this.broadcast(responseData, { afterNextPatch: true, except: client });
   }
 
@@ -192,6 +214,11 @@ export class CeasarRoom extends Room {
         debug(`CeasarRoom received annotation from ${client.sessionId}: ${data}`);
         this.state.syncAnnotation(client.sessionId, data.transform);
         this.sendUpdateMessage("annotation", client);
+        break;
+      case "deleteannotation":
+        debug(`CeasarRoom received delete annotation from ${client.sessionId}: ${data}`);
+        this.state.syncDeleteAnnotation(client.sessionId, data.annotationName);
+        this.sendUpdateMessage("deleteannotation", client, data.annotationName);
         break;
       case "heartbeat":
         // do nothing
