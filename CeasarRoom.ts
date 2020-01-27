@@ -68,6 +68,22 @@ class NetworkCelestialObject extends Schema {
   }
 }
 
+class NetworkPerspectivePin extends Schema {
+  @type(NetworkTransform)
+  location = new NetworkTransform();
+
+  @type("number")
+  datetime = Date.now();
+
+  constructor(locationTransform?: any, locationDatetime?: any) {
+    super();
+    if (locationTransform) {
+      this.location = new NetworkTransform(locationTransform);
+      this.datetime = Date.parse(locationDatetime);
+    }
+  }
+}
+
 export class Player extends Schema {
   @type("string")
   id = "";
@@ -84,8 +100,8 @@ export class Player extends Schema {
   @type(NetworkTransform)
   interactionTarget = new NetworkTransform();
 
-  @type(NetworkTransform)
-  locationPin = new NetworkTransform();
+  @type(NetworkPerspectivePin)
+  locationPin = new NetworkPerspectivePin();
 
   @type(NetworkCelestialObject)
   celestialObjectTarget = new NetworkCelestialObject();
@@ -118,8 +134,8 @@ export class State extends Schema {
   syncInteraction(id: string, interactionTransform: any) {
     this.players[id].interactionTarget = new NetworkTransform(interactionTransform);
   }
-  syncLocationPin(id: string, locationTransform: any) {
-    this.players[id].locationPin = new NetworkTransform(locationTransform);
+  syncLocationPin(id: string, locationTransform: any, locationDatetime: any) {
+    this.players[id].locationPin = new NetworkPerspectivePin(locationTransform, locationDatetime);
   }
 
   syncCelestialObjectInteraction(id: string, celestialObject: any) {
@@ -202,7 +218,7 @@ export class CeasarRoom extends Room {
         break;
       case "locationpin":
         debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
-        this.state.syncLocationPin(client.sessionId, data.transform);
+        this.state.syncLocationPin(client.sessionId, data.transform, data.locationDatetime);
         this.sendUpdateMessage("locationpin", client);
         break;
       case "celestialinteraction":
