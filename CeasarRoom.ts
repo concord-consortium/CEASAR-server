@@ -69,17 +69,19 @@ class NetworkCelestialObject extends Schema {
 }
 
 class NetworkPerspectivePin extends Schema {
-  @type(NetworkTransform)
-  location = new NetworkTransform();
-
+  @type("number")
+  latitude = 0;
+  @type("number")
+  longitude = 0;
   @type("number")
   datetime = Date.now();
 
-  constructor(locationTransform?: any, locationDatetime?: any) {
+  constructor(locationDatetime?: any, locationLatitude?: any, locationLongitude?: any) {
     super();
-    if (locationTransform) {
-      this.location = new NetworkTransform(locationTransform);
-      this.datetime = Date.parse(locationDatetime);
+    if (locationDatetime) {
+      this.latitude = locationLatitude;
+      this.longitude = locationLongitude;
+      this.datetime = locationDatetime;
     }
   }
 }
@@ -134,8 +136,8 @@ export class State extends Schema {
   syncInteraction(id: string, interactionTransform: any) {
     this.players[id].interactionTarget = new NetworkTransform(interactionTransform);
   }
-  syncLocationPin(id: string, locationTransform: any, locationDatetime: any) {
-    this.players[id].locationPin = new NetworkPerspectivePin(locationTransform, locationDatetime);
+  syncLocationPin(id: string, perspectivePin: any) {
+    this.players[id].locationPin = new NetworkPerspectivePin(perspectivePin.datetime, perspectivePin.latitude, perspectivePin.longitude);
   }
 
   syncCelestialObjectInteraction(id: string, celestialObject: any) {
@@ -159,7 +161,7 @@ export class State extends Schema {
     if (annotationIndex > -1){
       this.players[id].annotations.splice(annotationIndex, 1);
     }
-    
+
   }
 }
 
@@ -218,7 +220,7 @@ export class CeasarRoom extends Room {
         break;
       case "locationpin":
         debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
-        this.state.syncLocationPin(client.sessionId, data.transform, data.locationDatetime);
+        this.state.syncLocationPin(client.sessionId, data.perspectivePin);
         this.sendUpdateMessage("locationpin", client);
         break;
       case "celestialinteraction":
