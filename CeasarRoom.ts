@@ -75,14 +75,15 @@ class NetworkPerspectivePin extends Schema {
   longitude = 0;
   @type("number")
   datetime = Date.now();
+  @type(NetworkTransform)
+  cameraTransform = new NetworkTransform();
 
-  constructor(locationDatetime?: any, locationLatitude?: any, locationLongitude?: any) {
+  constructor(locationDatetime?: any, locationLatitude?: any, locationLongitude?: any, userCameraTransform?: any) {
     super();
-    if (locationDatetime) {
-      this.latitude = locationLatitude;
-      this.longitude = locationLongitude;
-      this.datetime = locationDatetime;
-    }
+    if (locationDatetime) this.datetime = locationDatetime;
+    if (locationLatitude) this.latitude = locationLatitude;
+    if (locationLongitude) this.longitude = locationLongitude;
+    if (userCameraTransform) this.cameraTransform = new NetworkTransform(userCameraTransform);
   }
 }
 
@@ -137,7 +138,7 @@ export class State extends Schema {
     this.players[id].interactionTarget = new NetworkTransform(interactionTransform);
   }
   syncLocationPin(id: string, perspectivePin: any) {
-    this.players[id].locationPin = new NetworkPerspectivePin(perspectivePin.datetime, perspectivePin.latitude, perspectivePin.longitude);
+    this.players[id].locationPin = new NetworkPerspectivePin(perspectivePin.datetime, perspectivePin.latitude, perspectivePin.longitude, perspectivePin.cameraTransform);
   }
 
   syncCelestialObjectInteraction(id: string, celestialObject: any) {
