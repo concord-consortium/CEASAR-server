@@ -74,7 +74,7 @@ class NetworkPerspectivePin extends Schema {
   @type("number")
   longitude = 0;
   @type("number")
-  datetime = Date.now();
+  datetime = Date.now() / 1000;
   @type(NetworkTransform)
   cameraTransform = new NetworkTransform();
 
