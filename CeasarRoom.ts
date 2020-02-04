@@ -87,7 +87,7 @@ class NetworkPerspectivePin extends Schema {
   }
 }
 
-export class Player extends Schema {
+export class NetworkPlayer extends Schema {
   @type("string")
   id = "";
 
@@ -117,11 +117,11 @@ export class Player extends Schema {
 }
 
 export class State extends Schema {
-  @type({ map: Player })
-  players = new MapSchema<Player>();
+  @type({ map: NetworkPlayer })
+  players = new MapSchema<NetworkPlayer>();
 
   createPlayer (id: string, username: string) {
-    this.players[id] = new Player();
+    this.players[id] = new NetworkPlayer();
     this.players[id].username = username;
     this.players[id].id = id;
   }
