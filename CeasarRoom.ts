@@ -165,7 +165,6 @@ export class State extends Schema {
     if (annotationIndex > -1){
       this.players[id].annotations.splice(annotationIndex, 1);
     }
-
   }
 }
 
