@@ -68,7 +68,29 @@ class NetworkCelestialObject extends Schema {
   }
 }
 
-export class Player extends Schema {
+class NetworkPerspectivePin extends Schema {
+  @type("number")
+  latitude = 0;
+  @type("number")
+  longitude = 0;
+  @type("number")
+  datetime = Date.now() / 1000;
+  @type("string")
+  locationName = "";
+  @type(NetworkTransform)
+  cameraTransform = new NetworkTransform();
+
+  constructor(locationDatetime?: any, locationLatitude?: any, locationLongitude?: any, userCameraTransform?: any, locationName?: any) {
+    super();
+    if (locationDatetime) this.datetime = locationDatetime;
+    if (locationLatitude) this.latitude = locationLatitude;
+    if (locationLongitude) this.longitude = locationLongitude;
+    if (userCameraTransform) this.cameraTransform = new NetworkTransform(userCameraTransform);
+    if (locationName) this.locationName = locationName;
+  }
+}
+
+export class NetworkPlayer extends Schema {
   @type("string")
   id = "";
 
@@ -84,8 +106,8 @@ export class Player extends Schema {
   @type(NetworkTransform)
   interactionTarget = new NetworkTransform();
 
-  @type(NetworkTransform)
-  locationPin = new NetworkTransform();
+  @type(NetworkPerspectivePin)
+  locationPin = new NetworkPerspectivePin();
 
   @type(NetworkCelestialObject)
   celestialObjectTarget = new NetworkCelestialObject();
@@ -98,11 +120,11 @@ export class Player extends Schema {
 }
 
 export class State extends Schema {
-  @type({ map: Player })
-  players = new MapSchema<Player>();
+  @type({ map: NetworkPlayer })
+  players = new MapSchema<NetworkPlayer>();
 
   createPlayer (id: string, username: string) {
-    this.players[id] = new Player();
+    this.players[id] = new NetworkPlayer();
     this.players[id].username = username;
     this.players[id].id = id;
   }
@@ -118,8 +140,8 @@ export class State extends Schema {
   syncInteraction(id: string, interactionTransform: any) {
     this.players[id].interactionTarget = new NetworkTransform(interactionTransform);
   }
-  syncLocationPin(id: string, locationTransform: any) {
-    this.players[id].locationPin = new NetworkTransform(locationTransform);
+  syncLocationPin(id: string, perspectivePin: any) {
+    this.players[id].locationPin = new NetworkPerspectivePin(perspectivePin.datetime, perspectivePin.latitude, perspectivePin.longitude, perspectivePin.cameraTransform, perspectivePin.locationName);
   }
 
   syncCelestialObjectInteraction(id: string, celestialObject: any) {
@@ -143,7 +165,6 @@ export class State extends Schema {
     if (annotationIndex > -1){
       this.players[id].annotations.splice(annotationIndex, 1);
     }
-    
   }
 }
 
@@ -202,7 +223,7 @@ export class CeasarRoom extends Room {
         break;
       case "locationpin":
         debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
-        this.state.syncLocationPin(client.sessionId, data.transform);
+        this.state.syncLocationPin(client.sessionId, data.perspectivePin);
         this.sendUpdateMessage("locationpin", client);
         break;
       case "celestialinteraction":
