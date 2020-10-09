@@ -1,7 +1,21 @@
 import { Room, Client } from "colyseus";
 import { Schema, type, MapSchema, ArraySchema } from "@colyseus/schema";
-import { verifyToken, User, IUser } from "@colyseus/social";
+// import { verifyToken, User, IUser } from "@colyseus/social";
 import { debug } from "./utils";
+
+export type NetworkMessageType =
+  "Movement" | "Interaction" | "LocationPin" | "CelestialInteraction" |  "Annotation" | "DeleteAnnotation" | "Heartbeat";
+
+// enum NetworkMessageType
+// {
+//     Movement = "Movement",
+//     Interaction = "Interaction",
+//     LocationPin = "LocationPin",
+//     CelestialInteraction = "CelestialInteraction",
+//     Annotation = "Annotation",
+//     DeleteAnnotation = "Deleteannotation",
+//     Heartbeat = "Heartbeat"
+// }
 
 class NetworkVector3 extends Schema {
   @type("number")
@@ -123,14 +137,15 @@ export class State extends Schema {
   @type({ map: NetworkPlayer })
   players = new MapSchema<NetworkPlayer>();
 
-  createPlayer (id: string, username: string) {
+  createPlayer(id: string, username: string) {
+    debug(`creating player ${id}: ${username}`)
     this.players[id] = new NetworkPlayer();
     this.players[id].username = username;
     this.players[id].id = id;
   }
 
   removePlayer (id: string) {
-      delete this.players[ id ];
+      delete this.players[id];
   }
 
   movePlayer(id: string, movementTransform: any) {
@@ -177,14 +192,21 @@ export class UpdateMessage extends Schema {
   metadata = "";
 }
 export class CeasarRoom extends Room {
-  onCreate(options: any) {
+  onCreate() {
     debug(`CeasarRoom created ${this.roomName}`);
     this.setState(new State());
+
+    this.onMessage("*", (client: any, messageType: any, data: any) => {
+      debug(`received message "${messageType}" from ${client.sessionId}`);
+      if (!this.state.players[client.sessionId]) debug("player not yet joined");
+      else (this.handleMessageReceived(messageType, client, data));
+    });
   }
 
-  async onAuth(client: Client, options: any) {
-    debug(`onAuth(), options! ${options}`);
-    return await User.findById(verifyToken(options.token)._id);
+  onAuth(client: Client, options: any) {
+    return client;
+    // debug(`onAuth(), options! ${options}`);
+    // return await User.findById(verifyToken(options.token)._id);
   }
 
   reportState() {
@@ -192,9 +214,10 @@ export class CeasarRoom extends Room {
     debug(this.state.toJSON());
   }
 
-  onJoin(client: Client, options: any, user: IUser) {
+  onJoin(client: Client, options: any) {
+    console.log("Joining: ", client.sessionId, options.username);
     this.state.createPlayer(client.sessionId, options.username);
-    this.broadcast(`${client.sessionId} joined.`);
+    // this.broadcast(`${client.sessionId} joined.`);
     this.reportState();
   }
 
@@ -209,48 +232,44 @@ export class CeasarRoom extends Room {
     this.broadcast(responseData, { afterNextPatch: true, except: client });
   }
 
-  onMessage(client: Client, data: any) {
-    switch (data.message) {
-      case "movement":
-        debug(`CeasarRoom received movement from ${client.sessionId}: ${data}`);
-        this.state.movePlayer(client.sessionId, data.transform);
-        this.sendUpdateMessage("movement", client);
+  handleMessageReceived(messageType: string, client: any, data: any) {
+    debug(`CeasarRoom received ${messageType} from ${client.sessionId}`);
+    switch (messageType) {
+      case "Movement":
+        this.state.movePlayer(client.sessionId, data);
+        this.sendUpdateMessage("Movement", client);
         break;
-      case "interaction":
-        debug(`CeasarRoom received interaction from ${client.sessionId}: ${data}`);
-        this.state.syncInteraction(client.sessionId, data.transform);
-        this.sendUpdateMessage("interaction", client);
+      case "Interaction":
+        this.state.syncInteraction(client.sessionId, data);
+        this.sendUpdateMessage("Interaction", client);
         break;
-      case "locationpin":
-        debug(`CeasarRoom received locationpin from ${client.sessionId}: ${data}`);
-        this.state.syncLocationPin(client.sessionId, data.perspectivePin);
-        this.sendUpdateMessage("locationpin", client);
+      case "LocationPin":
+        this.state.syncLocationPin(client.sessionId, data);
+        this.sendUpdateMessage("LocationPin", client);
         break;
-      case "celestialinteraction":
-        debug(`CeasarRoom received celestialInteraction from ${client.sessionId}: ${data}`);
-        this.state.syncCelestialObjectInteraction(client.sessionId, data.celestialObject);
-        this.sendUpdateMessage("celestialinteraction", client);
+      case "CelestialInteraction":
+        this.state.syncCelestialObjectInteraction(client.sessionId, data);
+        this.sendUpdateMessage("CelestialInteraction", client);
         break;
-      case "annotation":
-        debug(`CeasarRoom received annotation from ${client.sessionId}: ${data}`);
-        this.state.syncAnnotation(client.sessionId, data.transform);
-        this.sendUpdateMessage("annotation", client);
+      case "Annotation":
+        this.state.syncAnnotation(client.sessionId, data);
+        this.sendUpdateMessage("Annotation", client);
         break;
-      case "deleteannotation":
-        debug(`CeasarRoom received delete annotation from ${client.sessionId}: ${data}`);
-        this.state.syncDeleteAnnotation(client.sessionId, data.annotationName);
-        this.sendUpdateMessage("deleteannotation", client, data.annotationName);
+      case "DeleteAnnotation":
+        this.state.syncDeleteAnnotation(client.sessionId, data);
+        this.sendUpdateMessage("DeleteAnnotation", client, data);
         break;
-      case "heartbeat":
+      case "Heartbeat":
         // do nothing
         break;
       default:
-        debug(`CeasarRoom received unknown message from ${client.sessionId}: ${data}`);
-        this.broadcast({ message: `(${client.sessionId}) ${data.message}` });
+        debug(`CeasarRoom received unknown message of type: ${messageType}: ${JSON.stringify(data)}`);
+        // this.broadcast(messageType, { message: `(${client.sessionId}) ${data.message}` });
         break;
     }
     this.reportState();
   }
+
   onLeave(client: Client, consented: boolean) {
     this.broadcast(`${client.sessionId} left.`);
     this.reportState();
