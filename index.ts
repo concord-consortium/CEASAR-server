@@ -12,13 +12,12 @@ import { CeasarRoom } from "./CeasarRoom";
 const port = Number(process.env.PORT || 2567);
 const app = express();
 app.use(cors());
-app.use(express.json());
+// app.use(express.json());
 
-const server = http.createServer(app);
 const gameServer = new Server({
-  server,
-  express: app,
-  pingTimeout: 0
+  server: http.createServer(app),
+  // express: app,
+  pingInterval: 0
 });
 
 const roomNames =
@@ -28,14 +27,13 @@ const roomNames =
   'eta', 'theta', 'iota'
 ];
 
-roomNames.forEach(name => gameServer.define(name, CeasarRoom));
-
 // register your room handlers
-gameServer.define('ceasar', CeasarRoom);
+roomNames.forEach(name => gameServer.define(name, CeasarRoom));
+// gameServer.define('ceasar', CeasarRoom);
 
 // app.use("/", socialRoutes);
 // register colyseus monitor AFTER registering your room handlers
-// app.use("/colyseus", monitor(gameServer) );
+app.use("/colyseus", monitor() );
 
 gameServer.listen(port);
 // v1 used ws://calm-meadow-14344.herokuapp.com:2567

@@ -4,18 +4,7 @@ import { Schema, type, MapSchema, ArraySchema } from "@colyseus/schema";
 import { debug } from "./utils";
 
 export type NetworkMessageType =
-  "Movement" | "Interaction" | "LocationPin" | "CelestialInteraction" |  "Annotation" | "DeleteAnnotation" | "Heartbeat";
-
-// enum NetworkMessageType
-// {
-//     Movement = "Movement",
-//     Interaction = "Interaction",
-//     LocationPin = "LocationPin",
-//     CelestialInteraction = "CelestialInteraction",
-//     Annotation = "Annotation",
-//     DeleteAnnotation = "Deleteannotation",
-//     Heartbeat = "Heartbeat"
-// }
+  "Movement" | "Interaction" | "LocationPin" | "CelestialInteraction" |  "Annotation" | "DeleteAnnotation" | "Heartbeat" | "Text";
 
 class NetworkVector3 extends Schema {
   @type("number")
@@ -133,7 +122,7 @@ export class NetworkPlayer extends Schema {
   connected: boolean = true;
 }
 
-export class State extends Schema {
+export class RoomState extends Schema {
   @type({ map: NetworkPlayer })
   players = new MapSchema<NetworkPlayer>();
 
@@ -194,7 +183,7 @@ export class UpdateMessage extends Schema {
 export class CeasarRoom extends Room {
   onCreate() {
     debug(`CeasarRoom created ${this.roomName}`);
-    this.setState(new State());
+    this.setState(new RoomState());
 
     this.onMessage("*", (client: any, messageType: any, data: any) => {
       debug(`received message "${messageType}" from ${client.sessionId}`);
@@ -217,7 +206,9 @@ export class CeasarRoom extends Room {
   onJoin(client: Client, options: any) {
     console.log("Joining: ", client.sessionId, options.username);
     this.state.createPlayer(client.sessionId, options.username);
-    // this.broadcast(`${client.sessionId} joined.`);
+    const joinResponseData = new UpdateMessage();
+    joinResponseData.updateType = "Text"
+    this.broadcast(joinResponseData);
     this.reportState();
   }
 
@@ -229,6 +220,7 @@ export class CeasarRoom extends Room {
     responseData.updateType = messageType;
     responseData.playerId = client.sessionId;
     responseData.metadata = metadata ? metadata : "";
+    debug(`sending response ${responseData.updateType} from ${responseData.playerId} to clients`);
     this.broadcast(responseData, { afterNextPatch: true, except: client });
   }
 
