@@ -1,6 +1,6 @@
 # `ceasar-server`
 
-A CEASER Game server based on `create-colyseus-app`.
+A multiplayer game server for the [CEASAR](https://github.com/concord-consortium/CEASAR) project, based on [Colyseus](https://colyseus.io).
 
 ## :crossed_swords: Usage
 * If this is the first time running the app, run: `npm install`
@@ -11,12 +11,6 @@ A CEASER Game server based on `create-colyseus-app`.
 ### Local requirements:
 You will need to add a local `.env` file to this project directory.
 *Important: `.env` should always be included in `.gitignore`*
-
-The `.env` file should contain one environmental variable for the mongo server:
-
-```
-    MONGO_URI=mongodb://[user]:[password]@[host]
-```
 
 You will need to obtain that URI from another developer or from
 Config Var of the same name in the Heroku [ceaser-server-staging app](https://dashboard.heroku.com/apps/ceaser-server-staging/settings).
@@ -54,13 +48,9 @@ folder, then `start` is run, which executes `node dist/index.ts`.
 
 ### Preview Branches
 Pushing changes to *any* branch should cause a Heroku preview app to be built.
-You will need to configure the apps settings, to add a `MONGO_URI` config var.
-For now you can just copy the `MONGO_URI` config var from the
-[staging-app settings](https://dashboard.heroku.com/apps/ceasar-server-staging/settings).
 
 ### Staging Branch
 Pushing changes to *`master`* will cause the Heroku staging sever to update.
-The staging server is already provisioned with configured MLAb Mongo Heroku addon.
 
 The heroku app websocket server should be available at:
 wss://ceasar-server-staging.concord.org/ or
@@ -70,13 +60,11 @@ This is not configured yet, but will be configured similar to how the staging br
 
 ## Project Structure
 
-- `index.ts`: main entry point, register an empty room handler and attach [`@colyseus/monitor`](https://github.com/colyseus/colyseus-monitor)
-- `MyRoom.ts`: an empty room handler for you to implement your logic
-- `loadtest/example.ts`: scriptable client for the loadtest tool (see `npm run loadtest`)
+- `index.ts`: main entry point, register room handlers and attach [`@colyseus/monitor`](https://github.com/colyseus/colyseus-monitor)
+- `CeasarRoom.ts`: The main room handler, contains all schema definitions and room state
 - `package.json`:
     - `scripts`:
         - `npm live`: runs `ts-node index.ts`
-        - `npm run loadtest`: runs the [`@colyseus/loadtest`](https://github.com/colyseus/colyseus-loadtest/) tool for testing the connection, using the `loadtest/example.ts` script.
     - `dependencies`:
         - `colyseus`
         - `@colyseus/monitor`
@@ -85,7 +73,6 @@ This is not configured yet, but will be configured similar to how the staging br
     - `devDependencies`
         - `ts-node`
         - `typescript`
-        - `@colyseus/loadtest`
         - `rimraf`
 - `tsconfig.json`: TypeScript configuration file
 

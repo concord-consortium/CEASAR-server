@@ -9,7 +9,6 @@
   "scripts": {
     "start": "node dist/index.js",
     "live": "ts-node index.ts",
-    "loadtest": "colyseus-loadtest loadtest/example.ts --room my_room --numClients 2",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc",
