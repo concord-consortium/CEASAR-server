@@ -204,7 +204,7 @@ export class CeasarRoom extends Room {
   }
 
   onJoin(client: Client, options: any) {
-    console.log("Joining: ", client.sessionId, options.username);
+    debug(`Joining: ${client.sessionId} ${options.username}`);
     this.state.createPlayer(client.sessionId, options.username);
     const joinResponseData = new UpdateMessage();
     joinResponseData.updateType = "Text"
