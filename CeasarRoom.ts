@@ -263,7 +263,7 @@ export class CeasarRoom extends Room {
   }
 
   onLeave(client: Client, consented: boolean) {
-    this.broadcast(`${client.sessionId} left.`);
+    this.broadcast("Text", `${client.sessionId} left.`);
     this.reportState();
     debug("wait for reconnection!");
     this.allowReconnection(client, 2)
