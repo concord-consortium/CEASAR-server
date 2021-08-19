@@ -11,9 +11,14 @@ const port = Number(process.env.PORT || 2567);
 const app = express();
 app.use(cors());
 
+// 2021-08-18 NP: Heroku will take down our socket if its idle for > 55s
+// Websocket clients can not keep this socket alive when the tab is hidden.
+// So we keep the connection alive by pinging clients every 20s.
+// Clients that don't respond three times are OUT! ⚾⚾⚾
 const gameServer = new Server({
   server: http.createServer(app),
-  pingInterval: 0
+  pingInterval: 20 * 1000,
+  pingMaxRetries: 3
 });
 
 const roomNames =
