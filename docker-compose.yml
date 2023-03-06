@@ -7,7 +7,7 @@ services:
     command: docker/dev/run.sh
     environment:
       PORT: 3000
-      BASE_PATH: /
+      BASE_PATH:
     volumes:
       - .:/CEASAR-server
       - node_modules:/node_modules
