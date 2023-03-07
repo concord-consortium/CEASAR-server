@@ -39,7 +39,7 @@ app.get('/health', (req, res) => {
 });
 
 // register colyseus monitor AFTER registering your room handlers
-app.use(`${basePath}colyseus`, monitor() );
+app.use(`${basePath}`, monitor() );
 
 gameServer.listen(port);
 
