@@ -1,18 +1,16 @@
 {
   "name": "ceasar-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Server components for the CEASAR project networking",
   "main": "lib/index.js",
-  "engines": {
-    "node": "10.x"
-  },
   "scripts": {
     "start": "node dist/index.js",
     "live": "ts-node index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc",
-    "build-and-start": "npm run build && npm start"
+    "build-and-start": "npm run build && npm start",
+    "postinstall": "patch-package"
   },
   "author": "",
   "license": "",
@@ -30,6 +28,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.16.4",
     "express-jwt": "^5.3.1",
+    "patch-package": "^6.5.1",
     "rimraf": "^3.0.0",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.3"

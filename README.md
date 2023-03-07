@@ -6,20 +6,37 @@ A multiplayer game server for the [CEASAR](https://github.com/concord-consortium
 * If this is the first time running the app, run: `npm install`
 * If things are busted, try a nuke-and-repave: `./repave.sh`
 
+## Colyseus v0.13 monkey patch
+
+Make sure that `npm postinstall` script is executed (it should happen automatically, but you can also do it manually).
+It applies a monkey patch to Colyseus server v0.13 that lets us deploy server to a subroute:
+
+https://apps.concord.org/ceasar-server
+
+Otherwise, this app would need to be deployed to a top-level path (htts://ceasar-server.concord.org), which doesn't
+fit our deployment patterns.
+
+This bug was fixed in Colyseus v0.14, but this version that is not compatible with v0.13 client used by CEASAR Unity3D
+front-end. Long-term, both the server and the client should be updated to v0.14. This didn't happen in March 2023 due to
+issues with building the client code (Unity) and limited time.
+
+The monkey patch is based on this fix:
+https://github.com/colyseus/colyseus/commit/fd9298aa3bc2d271d0764ce45e720fe5ffee1399
+
 ## Development:
 
 ### Local requirements:
 You will need to add a local `.env` file to this project directory.
 *Important: `.env` should always be included in `.gitignore`*
 
-You will need to obtain that URI from another developer or from
-Config Var of the same name in the Heroku [ceaser-server-staging app](https://dashboard.heroku.com/apps/ceaser-server-staging/settings).
+The only variable necessary to set is BASE_PATH. It can be set to / or any other path that you use in the front-end app.
 
 ### Running Locally:
 
 To start a live-reloading development server run:
 ```
-   npm run live
+  npm install
+  npm run live
 ```
 
 ### Debugging
@@ -36,27 +53,9 @@ To regenerate the schema for the room, assuming project CEASAR is at same level 
    npx schema-codegen CeasarRoom.ts --csharp --output ../CEASAR/Assets/Scripts/Network/Schema/
 ```
 
-## Heroku Deployment:
-Ceaser-server is Heroku app setup under the Concord Consortium account.
-
-Heroku will look for pushed github branches to run as apps. *`master`* is automatically
-deployed. Other branches can be configured using the Heroku web console as preview apps.
-
-The Heroku pipeline looks at `package.json` to figure out how to build and run
-the Ceaser-server app. First `heroku-postbuild` is run which builds the `/dist`
-folder, then `start` is run, which executes `node dist/index.ts`.
-
-### Preview Branches
-Pushing changes to *any* branch should cause a Heroku preview app to be built.
-
-### Staging Branch
-Pushing changes to *`master`* will cause the Heroku staging sever to update.
-
-The heroku app websocket server should be available at:
-wss://ceasar-server-staging.concord.org/ or
-
-### Procution Branch
-This is not configured yet, but will be configured similar to how the staging branch is configured.
+## AWS Deployment:
+CEASAR-server is deployed to AWS Fargate using Cloud Formation template. Check CC CloudFormation template repository:
+https://github.com/concord-consortium/cloud-formation/tree/master/fargate
 
 ## Project Structure
 
@@ -75,7 +74,7 @@ This is not configured yet, but will be configured similar to how the staging br
         - `typescript`
         - `rimraf`
 - `tsconfig.json`: TypeScript configuration file
-
+- `patches`: Colyseus monkey-patch source
 
 ## License
 

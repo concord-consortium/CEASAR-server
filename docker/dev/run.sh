@@ -1,4 +1,5 @@
 #!/bin/bash
 
-npm install
+npm ci
+npm run postinstall
 npm run build-and-start

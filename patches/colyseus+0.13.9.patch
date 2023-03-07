@@ -1,0 +1,44 @@
+diff --git a/node_modules/colyseus/lib/Server.js b/node_modules/colyseus/lib/Server.js
+index 9cc32dd..1cdbe05 100644
+--- a/node_modules/colyseus/lib/Server.js
++++ b/node_modules/colyseus/lib/Server.js
+@@ -48,7 +48,7 @@ const WebSocketTransport_1 = require("./transport/WebSocket/WebSocketTransport")
+ class Server {
+     constructor(options = {}) {
+         this.processId = _1.generateId();
+-        this.route = '/matchmake';
++        this.matchmakeRoute = 'matchmake';
+         this.exposedMethods = ['joinOrCreate', 'create', 'join', 'joinById'];
+         this.allowedRoomNameChars = /([a-zA-Z_\-0-9]+)/gi;
+         this.onShutdownCallback = () => Promise.resolve();
+@@ -130,7 +130,7 @@ class Server {
+         const listeners = server.listeners('request').slice(0);
+         server.removeAllListeners('request');
+         server.on('request', (req, res) => {
+-            if (req.url.indexOf('/matchmake') !== -1) {
++            if (req.url.indexOf(`/${this.matchmakeRoute}`) !== -1) {
+                 Debug_1.debugMatchMaking('received matchmake request: %s', req.url);
+                 this.handleMatchMakeRequest(req, res);
+             }
+@@ -155,8 +155,10 @@ class Server {
+             }
+             else if (req.method === 'POST') {
+                 const matchedParams = req.url.match(this.allowedRoomNameChars);
+-                const method = matchedParams[1];
+-                const name = matchedParams[2] || '';
++                const matchmakeIndex = matchedParams.indexOf(this.matchmakeRoute);
++                const method = matchedParams[matchmakeIndex + 1];
++                const name = matchedParams[matchmakeIndex + 2] || '';
++
+                 const data = [];
+                 req.on('data', (chunk) => data.push(chunk));
+                 req.on('end', () => __awaiter(this, void 0, void 0, function* () {
+@@ -190,7 +192,7 @@ class Server {
+                     private: false,
+                 };
+                 // TODO: improve me, "matchmake" room names aren't allowed this way.
+-                if (roomName !== 'matchmake') {
++                if (roomName !== this.matchmakeRoute) {
+                     conditions.name = roomName;
+                 }
+                 headers['Content-Type'] = 'application/json';
