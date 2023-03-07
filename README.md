@@ -26,7 +26,7 @@ To start a live-reloading development server run:
 
 For additional debugging & logging add `CEASAR_DEBUG=true` to your local `.env` file.
 
-Your Ceaser Websocket should then be available at `ws://localhost:2567`.
+Your Ceaser Websocket should then be available at `ws://localhost:3000`.
 
 ## Changing the Schema:
 

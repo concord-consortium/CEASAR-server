@@ -1,0 +1,19 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: docker/dev/run.sh
+    environment:
+      PORT: 3000
+      BASE_PATH:
+    volumes:
+      - .:/CEASAR-server
+      - node_modules:/node_modules
+    networks:
+      default:
+    ports:
+      - "3000:3000"
+volumes:
+  node_modules:

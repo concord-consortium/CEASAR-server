@@ -7,7 +7,9 @@ import { Server } from "colyseus";
 import { monitor } from "@colyseus/monitor";
 import { CeasarRoom } from "./CeasarRoom";
 
-const port = Number(process.env.PORT || 2567);
+const port = Number(process.env.PORT || 3000);
+const basePath = process.env.BASE_PATH || "/";
+
 const app = express();
 app.use(cors());
 
@@ -31,8 +33,15 @@ const roomNames =
 // register your room handlers
 roomNames.forEach(name => gameServer.define(name, CeasarRoom));
 
+// health check path, necessary for AWS Fargate deployment
+app.get('/health', (req, res) => {
+  res.sendStatus(200);
+});
+
 // register colyseus monitor AFTER registering your room handlers
-app.use("/colyseus", monitor() );
+app.use(`${basePath}colyseus`, monitor() );
 
 gameServer.listen(port);
+
+console.log(`Base path:${ basePath }`)
 console.log(`Listening on port:${ port }`)
