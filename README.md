@@ -13,7 +13,7 @@ It applies a monkey patch to Colyseus server v0.13 that lets us deploy server to
 
 https://apps.concord.org/ceasar-server
 
-Otherwise, this app would need to be deplpyed to a top-level path (htts://ceasar-server.concord.org), which doesn't
+Otherwise, this app would need to be deployed to a top-level path (htts://ceasar-server.concord.org), which doesn't
 fit our deployment patterns.
 
 This bug was fixed in Colyseus v0.14, but this version that is not compatible with v0.13 client used by CEASAR Unity3D
